@@ -1,5 +1,5 @@
-[!NOTE]
-# Node.js, MongoDB, and Express Database Connection Project
+> [!NOTE]
+> # Node.js, MongoDB, and Express Database Connection Project
 
 This is a sample project demonstrating how to establish a connection to a MongoDB database using Node.js and Express.
 
