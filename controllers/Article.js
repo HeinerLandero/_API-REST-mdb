@@ -49,8 +49,56 @@ const create = async (req, res) => {
   }
 };
 
+const getArticle = async (req, res) => {
+  try {
+    const articles = await Article.find({})
+                                  .sort({date:-1});
+
+    if (!articles) {
+      return res.status(404).json({
+        status: 'Error',
+        message: 'Error, article no find'
+      });
+    }
+
+    return res.status(200).send({
+      status: 'Success',
+      articles
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'Error',
+      message: 'Error while fetching articles'
+    });
+  }
+};
+
+const one = async(req ,res)=>{
+  try {
+    let id = req.params.id;
+    await Article.findById(id, (error, article)=>{
+      
+      if(error || !article){
+        return res.status(404).json({
+          status:"error",
+          message: 'Error while fetching articles'
+        });
+      }
+     
+    })
+    
+  } catch (error) {
+    return res.status(200).json({
+      status:"success",
+      article
+    });
+  }
+}
+
 module.exports = {
   test,
   personal_data,
-  create
+  create,
+  getArticle,
+  one
 };
