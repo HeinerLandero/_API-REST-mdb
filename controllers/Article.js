@@ -73,32 +73,63 @@ const getArticle = async (req, res) => {
   }
 };
 
-const one = async(req ,res)=>{
+const one = async (req, res) => {
   try {
     let id = req.params.id;
-    await Article.findById(id, (error, article)=>{
-      
-      if(error || !article){
-        return res.status(404).json({
-          status:"error",
-          message: 'Error while fetching articles'
-        });
-      }
-     
-    })
-    
-  } catch (error) {
+    let article = await Article.findById(id).exec();
+
+    if (!article) {
+      return res.status(404).json({
+        status: "error",
+        message: 'Error while fetching article'
+      });
+    }
+
     return res.status(200).json({
-      status:"success",
+      status: "success",
       article
     });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: 'An error occurred'
+    });
   }
-}
+};
+
+
+const erased = async (req, res)=>{
+  try{
+    let id = req.params.id;
+    let article = await Article.findByIdAndDelete(id).exec();
+
+    if(!article){
+      return res.status(404).json({
+        status: "error",
+        message: 'error, item not found for deletion'
+      });
+    }
+      return res.status(200).json({
+        status: "success",
+        article
+      });
+  }
+  catch(error){
+    return res.status(500).json({
+      status: "error",
+      message: 'An error occurred'
+    });
+  }
+
+};
+
 
 module.exports = {
   test,
   personal_data,
   create,
   getArticle,
-  one
+  one,
+  erased
 };
