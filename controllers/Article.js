@@ -1,5 +1,6 @@
 const validator = require('validator');
 const Article = require('../models/Article');
+const { json } = require('express');
 
 const test = (req, res) => {
   return res.status(200).json({
@@ -16,10 +17,11 @@ const personal_data = (req, res) => {
   });
 };
 
+// Create data
+
 const create = async (req, res) => {
   let params = req.body;
 
-  // Validar datos
   try {
     let titleValidated = !validator.isEmpty(params.title) &&
                          validator.isLength(params.title, { min: 1, max: undefined });
@@ -48,7 +50,7 @@ const create = async (req, res) => {
     });
   }
 };
-
+// Get articles 
 const getArticle = async (req, res) => {
   try {
     const articles = await Article.find({})
@@ -72,7 +74,7 @@ const getArticle = async (req, res) => {
     });
   }
 };
-
+// Select a article for ID
 const one = async (req, res) => {
   try {
     let id = req.params.id;
@@ -98,7 +100,7 @@ const one = async (req, res) => {
   }
 };
 
-
+//Delete a Article
 const erased = async (req, res)=>{
   try{
     let id = req.params.id;
@@ -124,6 +126,46 @@ const erased = async (req, res)=>{
 
 };
 
+// Edit articles
+const edit = async (req, res) => {
+  let id = req.params.id;
+  let params = req.body;
+  try {
+    let titleValidated = !validator.isEmpty(params.title) &&
+      validator.isLength(params.title, { min: 1, max: undefined });
+    let contentValidated = !validator.isEmpty(params.content);
+
+    if (!titleValidated || !contentValidated) {
+      throw new Error('Error, data no is validated');
+    }
+
+    const article = await Article.findById(id);
+    if (!article) {
+      throw new Error('Error, article not found');
+    }
+    article.title = params.title;
+    article.content = params.content;
+    const articleSaved = await article.save();
+
+    if (!articleSaved) {
+      throw new Error('Error, article no saved');
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      article: articleSaved,
+      message: 'Article edited'
+    });
+
+  } catch (error) {
+    return res.status(400).json({
+      status: 'Error',
+      message: 'Error, incomplete data'
+    });
+  }
+};
+
+
 
 module.exports = {
   test,
@@ -131,5 +173,6 @@ module.exports = {
   create,
   getArticle,
   one,
-  erased
+  erased,
+  edit
 };

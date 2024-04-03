@@ -10,6 +10,7 @@ router.post('/create', ArticleController.create);
 router.get('/get-articles', ArticleController.getArticle);
 router.get('/get-articles/:id', ArticleController.one);
 router.delete('/get-articles/:id', ArticleController.erased);
+router.put('/get-articles/:id', ArticleController.edit);
 
 
 module.exports = router;
