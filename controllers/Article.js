@@ -1,4 +1,6 @@
 const {validateArticle} = require('../helpers/validate');
+const fs = require('fs');
+const path = require('path');
 const Article = require('../models/Article');
 const validator = require('validator');
 const { json } = require('express');
@@ -136,7 +138,105 @@ const edit = async (req, res) => {
     });
   }
 };
+//upload images
+const upload_img = async (req, res) =>{
+  if (!req.file && !req.files){
+    return res.status(400).json({
+      status: "error",
+      message: "No file uploaded"
+    });
+  }
 
+  let file_name = req.file.originalname;
+  let file_split = file_name.split(".");
+  let extension = file_split[file_split.length - 1];
+
+   // check file extension
+
+   const allowed_extensions = ["jpg", "jpeg", "png", "gif"];
+    if (!allowed_extensions.includes(extension)) {
+      fs.unlink(req.file.path, (error) => {
+        if (error) {
+          console.error(error);
+        }
+      });
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid file extension"
+      });
+    }else{
+       let articleId = req.params.id;
+
+        // find and updated article
+        const articleUpdated = await Article.findOneAndUpdate({_id: articleId}, {image: file_name}, {new: true});
+          if (!articleUpdated) {
+            return res.status(404).json({
+              status: "error",
+              message: "Article not found"
+            });
+          }
+          
+          return res.status(200).json({
+            status: "success",
+            article: articleUpdated,
+            file:req.file
+          });
+  }
+};
+
+// Get img
+
+const image = async(req, res) => {
+  let file = req.params.file;
+  let rute = "./images/article/" + file;
+
+  fs.stat(rute,(error, exist) => {
+    if(exist){
+      return res.sendFile(path.resolve(rute))
+    }else{
+      return res.status(404).json({
+        status: "error",
+        message: "Image not found",
+        exist,
+        file,
+        rute,
+      })
+    }
+  })
+};
+
+// Search 
+const search_artic = async (req, res) => {
+  let string = req.params.string;
+
+  try {
+    const articlesFinded = await Article.find({
+      "$or": [
+        {"title": {"$regex": string, "$options": "i"}},
+        {"content": {"$regex": string, "$options": "i"}}
+      ]
+    })
+    .sort({date: -1})
+    .exec();
+
+    if (!articlesFinded || ( articlesFinded.length === 0)) {
+      return res.status(404).json({
+        status: "error",
+        message: "Article not found"
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      articles: articlesFinded
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred"
+    });
+  }
+};
 
 module.exports = {
   test,
@@ -144,5 +244,8 @@ module.exports = {
   getArticles,
   one,
   erased,
-  edit
+  edit,
+  upload_img,
+  image,
+  search_artic
 };
